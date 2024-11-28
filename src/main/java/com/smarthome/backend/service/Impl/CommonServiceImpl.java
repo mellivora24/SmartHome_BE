@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 public class CommonServiceImpl implements CommonService {
-
     public List<Object> getAllDocuments(String collectionName) {
         Firestore db = FirestoreClient.getFirestore();
         CollectionReference collection = db.collection(collectionName);
@@ -51,6 +50,23 @@ public class CommonServiceImpl implements CommonService {
         }
     }
 
+    public Object getDocumentByEmail(String collectionName, String email) {
+        Firestore db = FirestoreClient.getFirestore();
+        CollectionReference collection = db.collection(collectionName);
+        Query query = collection.whereEqualTo("email", email);
+        ApiFuture<QuerySnapshot> querySnapshot = query.get();
+
+        try {
+            for (QueryDocumentSnapshot document : querySnapshot.get().getDocuments()) {
+                return document.getData();
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching document: " + e.getMessage());
+        }
+        throw new RuntimeException("Document not found with email: " + email);
+    }
+
     public String createDocument(String collectionName, UserRequest userRequest) {
         Firestore db = FirestoreClient.getFirestore();
         String documentId = UUID.randomUUID().toString();
@@ -68,7 +84,7 @@ public class CommonServiceImpl implements CommonService {
     public String createDocument(String collectionName, DeviceRequest deviceRequest) {
         Firestore db = FirestoreClient.getFirestore();
         String documentId = UUID.randomUUID().toString();
-        deviceRequest.setUid(documentId);
+        deviceRequest.setDeviceID(documentId);
         DocumentReference docRef = db.collection(collectionName).document(documentId);
         ApiFuture<WriteResult> future = docRef.set(deviceRequest);
         try {

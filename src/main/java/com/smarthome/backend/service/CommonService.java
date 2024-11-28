@@ -13,4 +13,6 @@ public interface CommonService {
     String createDocument(String collectionName, DeviceRequest deviceRequest);
     void updateDocument(String collectionName, String documentId, Map<String, Object> data);
     void deleteDocument(String collectionName, String documentId);
+
+    Object getDocumentByEmail(String collection, String email);
 }

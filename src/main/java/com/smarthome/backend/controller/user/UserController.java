@@ -2,7 +2,6 @@ package com.smarthome.backend.controller.user;
 
 import com.smarthome.backend.dto.DataResponse;
 import com.smarthome.backend.dto.Response;
-import com.smarthome.backend.dto.deviceDTO.request.DeviceRequest;
 import com.smarthome.backend.dto.userDTO.request.UserRequest;
 import com.smarthome.backend.service.CommonService;
 import lombok.AllArgsConstructor;
@@ -14,10 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @AllArgsConstructor
 public class UserController {
-
     private final CommonService commonService;
     private final String COLLECTION = "users";
 
@@ -43,6 +41,17 @@ public class UserController {
         return ResponseEntity.ok(dataResponse);
     }
 
+    @GetMapping("/email/{email}")
+    public ResponseEntity<Response<Object>> findByEmail(@PathVariable String email) {
+        Object document = commonService.getDocumentByEmail(COLLECTION, email);
+        Response<Object> dataResponse = Response.<Object>builder()
+                .message("Document fetched successfully")
+                .data(document)
+                .success(true)
+                .build();
+        return ResponseEntity.ok(dataResponse);
+    }
+
     @PostMapping
     public ResponseEntity<Response<Object>> create(@RequestBody UserRequest userRequest) {
         String id = commonService.createDocument(COLLECTION, userRequest);
@@ -56,12 +65,18 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Response<Object>> update(@PathVariable String id, @RequestBody UserRequest userRequest) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("uid", id);
-        data.put("phone", userRequest.getPhone());
-        data.put("name", userRequest.getName());
-        data.put("email", userRequest.getEmail());
-        commonService.updateDocument(COLLECTION, id, data);
+        Map<String, Object> currentData = (Map<String, Object>) commonService.getDocumentById(COLLECTION, id);
+        if (currentData == null) {
+            throw new RuntimeException("User not found with id: " + id);
+        }
+
+        Map<String, Object> updatedData = new HashMap<>(currentData);
+        if (userRequest.getPhone() != null) updatedData.put("phone", userRequest.getPhone());
+        if (userRequest.getName() != null) updatedData.put("name", userRequest.getName());
+        if (userRequest.getEmail() != null) updatedData.put("email", userRequest.getEmail());
+
+        commonService.updateDocument(COLLECTION, id, updatedData);
+
         Response<Object> dataResponse = Response.<Object>builder()
                 .message("Document updated successfully")
                 .data(Map.of("id", id))
@@ -80,4 +95,3 @@ public class UserController {
         return ResponseEntity.ok(dataResponse);
     }
 }
-

@@ -11,10 +11,9 @@ import lombok.*;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DeviceRequest {
-    private String uid;
-    private String deviceData;
+    private String deviceID;
     private String deviceName;
     private String devicePort;
     private String deviceType;
-    private String userUid;
+    private String deviceData;
 }
